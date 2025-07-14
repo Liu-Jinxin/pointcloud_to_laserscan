@@ -13,7 +13,7 @@ def generate_launch_description():
         ),
         Node(
             package='pointcloud_to_laserscan', executable='pointcloud_to_laserscan_node',
-            remappings=[('cloud_in',  ['/local_map']),
+            remappings=[('cloud_in',  ['/livox/points']),
                         ('scan',  ['/scan'])],
             parameters=[{
                 'target_frame': 'lidar_link',
