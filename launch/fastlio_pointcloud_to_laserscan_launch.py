@@ -16,7 +16,7 @@ def generate_launch_description():
             remappings=[('cloud_in',  ['/livox/lidar/pcd2']),
                         ('scan',  ['/scan'])],
             parameters=[{
-                'target_frame': 'livox_frame',
+                'target_frame': 'odom',
                 'transform_tolerance': 0.1,
                 'min_height': -0.5,
                 'max_height': 1.0,
