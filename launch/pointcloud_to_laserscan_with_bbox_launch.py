@@ -29,11 +29,11 @@ def generate_launch_description():
                 'inf_epsilon': 1.0,
                 # Bounding box filter parameters to filter out robot body/parts
                 'use_bounding_box_filter': True,
-                'bbox_min_x': -0.5,  # Filter out points inside this box
-                'bbox_max_x': 0.5,   # Adjust these values based on your robot size
+                'bbox_min_x': -0.2,  # Filter out points inside this box
+                'bbox_max_x': 1.5,   # Adjust these values based on your robot size
                 'bbox_min_y': -0.5,
                 'bbox_max_y': 0.5,
-                'bbox_min_z': -0.2,
+                'bbox_min_z': -1.0,
                 'bbox_max_z': 0.8
             }],
             name='pointcloud_to_laserscan'
