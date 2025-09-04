@@ -1,4 +1,3 @@
-# filepath: /home/jinxin/Desktop/Mobile_manipulator/src/pointcloud_to_laserscan/launch/pointcloud_to_laserscan_launch.py
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
@@ -13,10 +12,10 @@ def generate_launch_description():
         ),
         Node(
             package='pointcloud_to_laserscan', executable='pointcloud_to_laserscan_node',
-            remappings=[('cloud_in',  ['/cloud_registered_body']),
+            remappings=[('cloud_in',  ['/lidar_points']),
                         ('scan',  ['/scan'])],
             parameters=[{
-                'target_frame': 'body',
+                'target_frame': 'hesai_lidar',
                 'transform_tolerance': 0.01,
                 'min_height': -0.4,
                 'max_height': 1.0,
@@ -28,10 +27,10 @@ def generate_launch_description():
                 'range_max': 40.0,
                 'use_inf': True,
                 'inf_epsilon': 1.0,
-                # Bounding box filter (disabled by default)
-                'use_bounding_box_filter': False,
-                'bbox_min_x': -0.5,
-                'bbox_max_x': 0.5,
+                # Bounding box filter parameters to filter out robot body/parts
+                'use_bounding_box_filter': True,
+                'bbox_min_x': -0.5,  # Filter out points inside this box
+                'bbox_max_x': 0.5,   # Adjust these values based on your robot size
                 'bbox_min_y': -0.5,
                 'bbox_max_y': 0.5,
                 'bbox_min_z': -0.2,

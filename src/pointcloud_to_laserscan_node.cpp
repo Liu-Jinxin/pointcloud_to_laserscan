@@ -75,6 +75,15 @@ PointCloudToLaserScanNode::PointCloudToLaserScanNode(const rclcpp::NodeOptions &
   inf_epsilon_ = this->declare_parameter("inf_epsilon", 1.0);
   use_inf_ = this->declare_parameter("use_inf", true);
 
+  // Bounding box filter parameters
+  use_bounding_box_filter_ = this->declare_parameter("use_bounding_box_filter", false);
+  bbox_min_x_ = this->declare_parameter("bbox_min_x", 0.0);
+  bbox_max_x_ = this->declare_parameter("bbox_max_x", 0.0);
+  bbox_min_y_ = this->declare_parameter("bbox_min_y", 0.0);
+  bbox_max_y_ = this->declare_parameter("bbox_max_y", 0.0);
+  bbox_min_z_ = this->declare_parameter("bbox_min_z", 0.0);
+  bbox_max_z_ = this->declare_parameter("bbox_max_z", 0.0);
+
   auto qos = rclcpp::QoS(rclcpp::SensorDataQoS()).reliable();
   pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan", qos);
 
@@ -195,6 +204,19 @@ void PointCloudToLaserScanNode::cloudCallback(
         "rejected for height %f not in range (%f, %f)\n",
         *iter_z, min_height_, max_height_);
       continue;
+    }
+
+    // Check bounding box filter if enabled
+    if (use_bounding_box_filter_) {
+      if (*iter_x >= bbox_min_x_ && *iter_x <= bbox_max_x_ &&
+          *iter_y >= bbox_min_y_ && *iter_y <= bbox_max_y_ &&
+          *iter_z >= bbox_min_z_ && *iter_z <= bbox_max_z_) {
+        RCLCPP_DEBUG(
+          this->get_logger(),
+          "rejected for being inside bounding box. Point: (%f, %f, %f)",
+          *iter_x, *iter_y, *iter_z);
+        continue;
+      }
     }
 
     double range = hypot(*iter_x, *iter_y);

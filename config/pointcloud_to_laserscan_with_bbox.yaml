@@ -1,0 +1,41 @@
+# Pointcloud to Laserscan Configuration with Bounding Box Filter
+# This configuration file contains parameters for the pointcloud_to_laserscan node
+# including the new bounding box filter to remove points inside a specified cube
+
+pointcloud_to_laserscan_node:
+  ros__parameters:
+    # Frame transformation parameters
+    target_frame: "body"                  # Target frame for the laser scan
+    transform_tolerance: 0.01             # Transform tolerance in seconds
+    
+    # Height filtering parameters
+    min_height: -0.4                      # Minimum height of points to consider
+    max_height: 1.0                       # Maximum height of points to consider
+    
+    # Angular parameters
+    angle_min: -3.14159                   # Minimum angle (-180 degrees)
+    angle_max: 3.14159                    # Maximum angle (180 degrees)
+    angle_increment: 0.003141592          # Angular resolution (~0.18 degrees)
+    
+    # Scan timing
+    scan_time: 0.3333                     # Time for one complete scan (3Hz)
+    
+    # Range parameters
+    range_min: 0.45                       # Minimum range in meters
+    range_max: 40.0                       # Maximum range in meters
+    use_inf: true                         # Use infinity for no return
+    inf_epsilon: 1.0                      # Small value added to range_max when use_inf is false
+    
+    # Bounding box filter parameters
+    # This filter removes points that are inside the specified cubic region
+    # Useful for filtering out robot body parts, sensor mounts, etc.
+    use_bounding_box_filter: true         # Enable/disable bounding box filtering
+    bbox_min_x: -0.5                      # Minimum X coordinate of bounding box
+    bbox_max_x: 0.5                       # Maximum X coordinate of bounding box
+    bbox_min_y: -0.5                      # Minimum Y coordinate of bounding box
+    bbox_max_y: 0.5                       # Maximum Y coordinate of bounding box
+    bbox_min_z: -0.2                      # Minimum Z coordinate of bounding box
+    bbox_max_z: 0.8                       # Maximum Z coordinate of bounding box
+    
+    # Queue size for input pointcloud messages
+    queue_size: 4                         # Input queue size (adjust based on CPU cores)

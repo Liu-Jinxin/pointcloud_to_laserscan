@@ -30,6 +30,18 @@ This ROS 2 component projects `sensor_msgs/msg/PointCloud2` messages into `senso
 * `transform_tolerance` (double, default: 0.01) - Time tolerance for transform lookups. Only used if a `target_frame` is provided.
 * `use_inf` (boolean, default: true) - If disabled, report infinite range (no obstacle) as range_max + 1. Otherwise report infinite range as +inf.
 
+#### Bounding Box Filter Parameters
+
+The following parameters control the bounding box filter, which can be used to filter out points inside a specified cubic region (e.g., robot body parts, sensor mounts):
+
+* `use_bounding_box_filter` (boolean, default: false) - Enable or disable bounding box filtering.
+* `bbox_min_x` (double, default: -1.0) - Minimum X coordinate of the bounding box in meters.
+* `bbox_max_x` (double, default: 1.0) - Maximum X coordinate of the bounding box in meters.
+* `bbox_min_y` (double, default: -1.0) - Minimum Y coordinate of the bounding box in meters.
+* `bbox_max_y` (double, default: 1.0) - Maximum Y coordinate of the bounding box in meters.
+* `bbox_min_z` (double, default: -1.0) - Minimum Z coordinate of the bounding box in meters.
+* `bbox_max_z` (double, default: 1.0) - Maximum Z coordinate of the bounding box in meters.
+
 ## pointcloud\_to\_laserscan::LaserScanToPointCloudNode
 
 This ROS 2 component re-publishes `sensor_msgs/msg/LaserScan` messages as `sensor_msgs/msg/PointCloud2` messages.

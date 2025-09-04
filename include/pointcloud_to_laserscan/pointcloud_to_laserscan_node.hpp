@@ -95,6 +95,10 @@ private:
     range_max_;
   bool use_inf_;
   double inf_epsilon_;
+  
+  // Bounding box filter parameters
+  bool use_bounding_box_filter_;
+  double bbox_min_x_, bbox_max_x_, bbox_min_y_, bbox_max_y_, bbox_min_z_, bbox_max_z_;
 };
 
 }  // namespace pointcloud_to_laserscan
