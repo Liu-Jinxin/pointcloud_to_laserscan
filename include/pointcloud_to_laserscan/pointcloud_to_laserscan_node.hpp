@@ -78,6 +78,10 @@ private:
 
   void subscriptionListenerThreadLoop();
 
+  // Parameter callback for dynamic reconfiguration
+  rcl_interfaces::msg::SetParametersResult parametersCallback(
+    const std::vector<rclcpp::Parameter> & parameters);
+
   std::unique_ptr<tf2_ros::Buffer> tf2_;
   std::unique_ptr<tf2_ros::TransformListener> tf2_listener_;
   message_filters::Subscriber<sensor_msgs::msg::PointCloud2> sub_;
@@ -86,6 +90,9 @@ private:
 
   std::thread subscription_listener_thread_;
   std::atomic_bool alive_{true};
+
+  // Parameter callback handle
+  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
 
   // ROS Parameters
   int input_queue_size_;

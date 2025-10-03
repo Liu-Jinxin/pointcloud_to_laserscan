@@ -64,25 +64,42 @@ PointCloudToLaserScanNode::PointCloudToLaserScanNode(const rclcpp::NodeOptions &
   // achievable by the associated executor
   input_queue_size_ = this->declare_parameter(
     "queue_size", static_cast<int>(std::thread::hardware_concurrency()));
-  min_height_ = this->declare_parameter("min_height", std::numeric_limits<double>::min());
-  max_height_ = this->declare_parameter("max_height", std::numeric_limits<double>::max());
+  // Basic parameters with dynamic reconfiguration support for some key ones
+  rcl_interfaces::msg::ParameterDescriptor height_desc;
+  height_desc.description = "Height filter parameter (dynamically reconfigurable)";
+  height_desc.read_only = false;
+
+  rcl_interfaces::msg::ParameterDescriptor range_desc;
+  range_desc.description = "Range filter parameter (dynamically reconfigurable)";
+  range_desc.read_only = false;
+
+  min_height_ = this->declare_parameter("min_height", std::numeric_limits<double>::min(), height_desc);
+  max_height_ = this->declare_parameter("max_height", std::numeric_limits<double>::max(), height_desc);
   angle_min_ = this->declare_parameter("angle_min", -M_PI);
   angle_max_ = this->declare_parameter("angle_max", M_PI);
   angle_increment_ = this->declare_parameter("angle_increment", M_PI / 180.0);
   scan_time_ = this->declare_parameter("scan_time", 1.0 / 30.0);
-  range_min_ = this->declare_parameter("range_min", 0.0);
-  range_max_ = this->declare_parameter("range_max", std::numeric_limits<double>::max());
+  range_min_ = this->declare_parameter("range_min", 0.0, range_desc);
+  range_max_ = this->declare_parameter("range_max", std::numeric_limits<double>::max(), range_desc);
   inf_epsilon_ = this->declare_parameter("inf_epsilon", 1.0);
   use_inf_ = this->declare_parameter("use_inf", true);
 
-  // Bounding box filter parameters
-  use_bounding_box_filter_ = this->declare_parameter("use_bounding_box_filter", false);
-  bbox_min_x_ = this->declare_parameter("bbox_min_x", 0.0);
-  bbox_max_x_ = this->declare_parameter("bbox_max_x", 0.0);
-  bbox_min_y_ = this->declare_parameter("bbox_min_y", 0.0);
-  bbox_max_y_ = this->declare_parameter("bbox_max_y", 0.0);
-  bbox_min_z_ = this->declare_parameter("bbox_min_z", 0.0);
-  bbox_max_z_ = this->declare_parameter("bbox_max_z", 0.0);
+  // Bounding box filter parameters with dynamic reconfiguration support
+  rcl_interfaces::msg::ParameterDescriptor bbox_desc;
+  bbox_desc.description = "Bounding box filter parameter (dynamically reconfigurable)";
+  bbox_desc.read_only = false;
+
+  use_bounding_box_filter_ = this->declare_parameter("use_bounding_box_filter", false, bbox_desc);
+  bbox_min_x_ = this->declare_parameter("bbox_min_x", 0.0, bbox_desc);
+  bbox_max_x_ = this->declare_parameter("bbox_max_x", 0.0, bbox_desc);
+  bbox_min_y_ = this->declare_parameter("bbox_min_y", 0.0, bbox_desc);
+  bbox_max_y_ = this->declare_parameter("bbox_max_y", 0.0, bbox_desc);
+  bbox_min_z_ = this->declare_parameter("bbox_min_z", 0.0, bbox_desc);
+  bbox_max_z_ = this->declare_parameter("bbox_max_z", 0.0, bbox_desc);
+
+  // Set parameter callback for dynamic reconfiguration
+  param_callback_handle_ = this->add_on_set_parameters_callback(
+    std::bind(&PointCloudToLaserScanNode::parametersCallback, this, std::placeholders::_1));
 
   auto qos = rclcpp::QoS(rclcpp::SensorDataQoS()).reliable();
   pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan", qos);
@@ -251,6 +268,57 @@ void PointCloudToLaserScanNode::cloudCallback(
     }
   }
   pub_->publish(std::move(scan_msg));
+}
+
+rcl_interfaces::msg::SetParametersResult PointCloudToLaserScanNode::parametersCallback(
+  const std::vector<rclcpp::Parameter> & parameters)
+{
+  rcl_interfaces::msg::SetParametersResult result;
+  result.successful = true;
+
+  for (const auto & parameter : parameters) {
+    const std::string & name = parameter.get_name();
+    
+    if (name == "use_bounding_box_filter") {
+      use_bounding_box_filter_ = parameter.as_bool();
+      RCLCPP_INFO(this->get_logger(), "Updated use_bounding_box_filter to: %s", 
+                  use_bounding_box_filter_ ? "true" : "false");
+    } else if (name == "bbox_min_x") {
+      bbox_min_x_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated bbox_min_x to: %f", bbox_min_x_);
+    } else if (name == "bbox_max_x") {
+      bbox_max_x_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated bbox_max_x to: %f", bbox_max_x_);
+    } else if (name == "bbox_min_y") {
+      bbox_min_y_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated bbox_min_y to: %f", bbox_min_y_);
+    } else if (name == "bbox_max_y") {
+      bbox_max_y_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated bbox_max_y to: %f", bbox_max_y_);
+    } else if (name == "bbox_min_z") {
+      bbox_min_z_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated bbox_min_z to: %f", bbox_min_z_);
+    } else if (name == "bbox_max_z") {
+      bbox_max_z_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated bbox_max_z to: %f", bbox_max_z_);
+    }
+    // Add validation for other parameters if needed
+    else if (name == "min_height") {
+      min_height_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated min_height to: %f", min_height_);
+    } else if (name == "max_height") {
+      max_height_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated max_height to: %f", max_height_);
+    } else if (name == "range_min") {
+      range_min_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated range_min to: %f", range_min_);
+    } else if (name == "range_max") {
+      range_max_ = parameter.as_double();
+      RCLCPP_INFO(this->get_logger(), "Updated range_max to: %f", range_max_);
+    }
+  }
+
+  return result;
 }
 
 }  // namespace pointcloud_to_laserscan
